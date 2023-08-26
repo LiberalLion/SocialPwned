@@ -30,10 +30,15 @@ def haveIBeenPwned(email):
         'Connection': 'close',
     }
 
-    print(colors.info + " Searching information about Leaks found :)" + colors.end)
+    print(f"{colors.info} Searching information about Leaks found :){colors.end}")
 
     try:
-        response = requests.get('http://haveibeenpwned.com/unifiedsearch/'+str(email), headers=headers, cookies=cookies, verify=False)
+        response = requests.get(
+            f'http://haveibeenpwned.com/unifiedsearch/{str(email)}',
+            headers=headers,
+            cookies=cookies,
+            verify=False,
+        )
 
         infoAboutLeak = []
         items = json.loads(response.text)
@@ -46,7 +51,7 @@ def haveIBeenPwned(email):
             infoAboutLeak.append(json.dumps({'name': name, 'domain': domain, 'date': date}))
     except:
         infoAboutLeak.append(" Sources not found")
-    
+
     return infoAboutLeak
         
 def parsePwndbResponse(mail,text):
@@ -79,12 +84,15 @@ def parsePwndbResponse(mail,text):
 def findLeak(emails,tor_proxy):
     
     session = requests.session()
-    session.proxies = {'http': 'socks5h://{}'.format(tor_proxy), 'https': 'socks5h://{}'.format(tor_proxy)}
+    session.proxies = {
+        'http': f'socks5h://{tor_proxy}',
+        'https': f'socks5h://{tor_proxy}',
+    }
 
     url = "http://pwndb2am4tzkvold.onion/"
     leaks = []
-    
-    print(colors.info + " Searching Leaks :)" + colors.end)
+
+    print(f"{colors.info} Searching Leaks :){colors.end}")
     for email in emails:
 
         item = json.loads(email)
@@ -100,18 +108,22 @@ def findLeak(emails,tor_proxy):
         try:
             response = session.post(url, data=request_data)
         except Exception as e:
-            print(colors.bad + " Can't connect to service! restart tor service and try again." + colors.end)
+            print(
+                f"{colors.bad} Can't connect to service! restart tor service and try again.{colors.end}"
+            )
             print(e)
             sys.exit()
-        print(colors.info + " Searching: " + mail + colors.end)
+        print(f"{colors.info} Searching: {mail}{colors.end}")
         if response.status_code == 200:
             target = {'user': user, 'userID': userID, 'email': mail, 'leak': parsePwndbResponse(mail,response.text)}
             leaks.append(target)
-            print(colors.good + " The request was successful" + colors.end)
+            print(f"{colors.good} The request was successful{colors.end}")
         else:
             print(response.status_code)
             print(response.text)
-            print(colors.bad + " The request was not successful for the user: " + colors.W + user + colors.R + " and email: " + colors.W + mail + colors.R + ". Maybe you should increase the delay" + colors.end)
+            print(
+                f"{colors.bad} The request was not successful for the user: {colors.W}{user}{colors.R} and email: {colors.W}{mail}{colors.R}. Maybe you should increase the delay{colors.end}"
+            )
 
     return leaks
 
@@ -120,7 +132,17 @@ def saveResultsPwnDB(results):
         for result in results:
             leak = result.get("leak")
             if len(leak) >= 1:
-                print(colors.good + " User: " + colors.V + result.get("user") + colors.B + " Email: " + colors.V + result.get("email") + colors.V + " Have Leaks " + colors.end)
+                print(
+                    f"{colors.good} User: {colors.V}"
+                    + result.get("user")
+                    + colors.B
+                    + " Email: "
+                    + colors.V
+                    + result.get("email")
+                    + colors.V
+                    + " Have Leaks "
+                    + colors.end
+                )
                 resultFile.write("User: " + result.get("user") + " Email: " + result.get("email")+"\n")
                 for i in range (len(leak)-1):
                     print("\t" + colors.good + " Leaks found in PwnDB: " + colors.V + str(leak[i]) + colors.end)
@@ -132,7 +154,17 @@ def saveResultsPwnDB(results):
                     print("\t\t" + colors.good + " " + colors.V + infoPwned + colors.end)
                     resultFile.write("\t\t" + infoPwned + "\n")
             else:
-                print(colors.good + " User: " + colors.W + result.get("user") + colors.B + " Email: " + colors.W + result.get("email") + colors.B + " Not Have Leaks in PwnDB" + colors.end)
+                print(
+                    f"{colors.good} User: {colors.W}"
+                    + result.get("user")
+                    + colors.B
+                    + " Email: "
+                    + colors.W
+                    + result.get("email")
+                    + colors.B
+                    + " Not Have Leaks in PwnDB"
+                    + colors.end
+                )
     resultFile.close()
 
 

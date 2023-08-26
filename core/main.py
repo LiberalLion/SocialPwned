@@ -10,7 +10,7 @@ from core import twitter
 from core.colors import colors
 
 def saveResults(file,results):
-    print(colors.info + " Writing the file..." + colors.end)
+    print(f"{colors.info} Writing the file...{colors.end}")
     content = ""
     with open(str(file), "r") as resultFile:
         content = resultFile.read()
@@ -31,7 +31,7 @@ def readCredentials(credentialsFile):
             data = json.load(json_file)
         json_file.close()
     except:
-        print(colors.bad + " Incorrect JSON format" + colors.end)
+        print(f"{colors.bad} Incorrect JSON format{colors.end}")
         sys.exit()
 
     return data
@@ -51,7 +51,9 @@ def instagramParameters(args,ig_username,ig_password):
         if args.target_ig:
             temp = instagram.getUserInformation(api,args.target_ig)
             if temp == False:
-                print(colors.info + " The user has a private profile or doesn't have public email..." + colors.end)
+                print(
+                    f"{colors.info} The user has a private profile or doesn't have public email...{colors.end}"
+                )
             else:
                 results.extend(temp)
                 if args.followers_ig and not args.followings_ig:
@@ -62,25 +64,25 @@ def instagramParameters(args,ig_username,ig_password):
                     followers = instagram.getUserFollowers(api,args.target_ig)
                     followings =  instagram.getUserFollowings(api,args.target_ig)
                     results.extend(instagram.sortContacts(followers,followings))
-              
+
         if args.location:
             results.extend(instagram.getUsersFromLocation(api,args.location))
 
         if args.search_users_ig:
             results.extend(instagram.getUsersOfTheSearch(api,args.search_users_ig))
-            
+
         if args.my_followers and not args.my_followings:
             results.extend(instagram.getMyFollowers(api))
-            
+
         if args.my_followings and not args.my_followers:
             results.extend(instagram.getMyFollowings(api))
-            
+
         if args.my_followings and args.my_followers:
             followers = instagram.getMyFollowers(api)
             followings = instagram.getMyFollowings(api)
-            results.extend(instagram.sortContacts(followers,followings))  
+            results.extend(instagram.sortContacts(followers,followings))
     else:
-        print(colors.bad + " Can't Login to Instagram!" + colors.end)
+        print(f"{colors.bad} Can't Login to Instagram!{colors.end}")
 
     return results
     
@@ -91,7 +93,7 @@ def linkedinParameters(args,in_email,in_password):
     api = Linkedin(in_email, in_password)
     if api.__dict__.get("success"):
         print(colors.good + " Successful login to Linkedin!\n" + colors.end)
-        
+
         if args.company:
             linkedin.getCompanyInformation(api,args.company)
             users = []
@@ -136,7 +138,7 @@ def linkedinParameters(args,in_email,in_password):
             linkedin.sendContactRequest(api,args.add_one_contact)
 
     else:
-        print(colors.bad + " Can't Login to linkedin!" + colors.end)      
+        print(f"{colors.bad} Can't Login to linkedin!{colors.end}")      
 
     return results
 
@@ -190,17 +192,19 @@ def run(args):
     if args.credentials and os.path.isfile(args.credentials) and os.access(args.credentials, os.R_OK):
         creds = readCredentials(args.credentials)
     else:
-        print(colors.bad + " The file can't be accessed" + colors.end)
+        print(f"{colors.bad} The file can't be accessed{colors.end}")
         sys.exit()
 
     if args.output and not os.path.isfile(args.output):
-        print(colors.bad + " The file doesn't exist" + colors.end)
+        print(f"{colors.bad} The file doesn't exist{colors.end}")
         sys.exit()
-    
+
     if args.pwndb:
         status = os.system('systemctl is-active --quiet tor')
         if status != 0:
-            print(colors.bad + " Can't connect to service! restart tor service and try again." + colors.end)
+            print(
+                f"{colors.bad} Can't connect to service! restart tor service and try again.{colors.end}"
+            )
             sys.exit()
 
     if args.instagram:
@@ -212,7 +216,7 @@ def run(args):
         in_email = creds.get("linkedin").get("email")
         in_password = creds.get("linkedin").get("password")
         results.extend(linkedinParameters(args,in_email,in_password))
-    
+
     if args.twitter:
         results.extend(twitterParameters(args))
 
@@ -222,8 +226,8 @@ def run(args):
     if args.pwndb and results != [] and results != False:
         juicyInformation = PwnDB.findLeak(results,args.tor_proxy)
         PwnDB.saveResultsPwnDB(juicyInformation)
-    elif results == []:
-        print(colors.info + " No emails were found to search." + colors.end)
+    elif not results:
+        print(f"{colors.info} No emails were found to search.{colors.end}")
 
 
 
